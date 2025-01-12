@@ -1,0 +1,13 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Edit Task - Task Management System{% endblock %}
+
+{% block content %}
+    <h2>Edit Task</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="submit-btn">Save Changes</button>
+    </form>
+{% endblock %}

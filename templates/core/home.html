@@ -1,0 +1,48 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Home - Task Management System{% endblock %}
+
+{% block content %}
+    <a href="/tasks/new/" class="add-task-btn">Add New Task</a>
+
+    <!-- Progress Bar Section -->
+    <div class="progress-section">
+        <h2>Task Progress</h2>
+        <div class="progress-bar-wrapper">
+            <div class="progress-bar" style="width: {{ progress }}%;"></div>
+        </div>
+        <p>{{ progress|floatformat:2 }}% completed</p>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <form method="GET" action="{% url 'home_page' %}" class="search-form">
+        <input type="text" name="q" placeholder="Search tasks..." value="{{ query }}" class="search-bar">
+        <select name="status" class="filter-dropdown">
+            <option value="">All Statuses</option>
+            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+            <option value="In Progress" {% if status_filter == "In Progress" %}selected{% endif %}>In Progress</option>
+            <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>Completed</option>
+        </select>
+        <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    <h2>All Tasks</h2>
+    {% for task in tasks %}
+        <div class="card">
+            <h3>{{ task.title }}</h3>
+            <p><strong>Description:</strong> {{ task.description }}</p>
+            <p><strong>Status:</strong> {{ task.status }}</p>
+            <p><strong>Due Date:</strong> {{ task.due_date }}</p>
+            <div class="actions">
+                <a href="/tasks/{{ task.id }}/edit/" class="edit-btn">Edit</a>
+                <form action="/tasks/{{ task.id }}/delete/" method="POST" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+        </div>
+    {% empty %}
+        <p>No tasks found.</p>
+    {% endfor %}
+{% endblock %}

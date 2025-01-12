@@ -1,0 +1,16 @@
+{% extends 'partials/base.html' %}
+
+{% block title %}Register - Task Management System{% endblock %}
+
+{% block content %}
+    <h1>Register</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+{% endblock %}
