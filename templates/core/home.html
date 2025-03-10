@@ -15,6 +15,9 @@
         <p>{{ progress|floatformat:2 }}% completed</p>
     </div>
 
+    <!-- Notification Box -->
+    <div id="notificationBox"></div>
+
     <!-- Search and Filter Form -->
     <form method="GET" action="{% url 'home_page' %}" class="search-form">
         <input type="text" name="q" placeholder="Search tasks..." value="{{ query }}" class="search-bar">
@@ -36,6 +39,9 @@
             <p><strong>Due Date:</strong> {{ task.due_date }}</p>
             <div class="actions">
                 <a href="/tasks/{{ task.id }}/edit/" class="edit-btn">Edit</a>
+                <!-- Change Start -->
+                <a href="/tasks/{{ task.id }}/share/" class="btn btn-primary">Manage Sharing</a>
+                <!-- Change End -->
                 <form action="/tasks/{{ task.id }}/delete/" method="POST" class="inline-form">
                     {% csrf_token %}
                     <button type="submit" class="delete-btn">Delete</button>
@@ -45,4 +51,294 @@
     {% empty %}
         <p>No tasks found.</p>
     {% endfor %}
-{% endblock %}
+
+    
+    <!-- Change Start -->
+    <h2>Tasks Shared With Me</h2>
+    <div id="sharedTasksContainer"></div>
+    <button onclick="fetchSharedTasks()">Load Shared Tasks</button>
+
+    
+    <!-- JavaScript -->
+    <script>
+        // Real-Time Notifications functions start
+        {% comment %} document.addEventListener("DOMContentLoaded", function () {
+            const notificationBox = document.getElementById("notificationBox");
+        
+            // Establish WebSocket connection for real-time notifications
+            const socket = new WebSocket("ws://127.0.0.1:8001/ws/notifications/");
+        
+            socket.onopen = function () {
+                console.log("✅ WebSocket connection established.");
+            };
+        
+            socket.onerror = function (error) {
+                console.error("❌ WebSocket error:", error);
+            };
+        
+            // Handle real-time messages via WebSocket
+            socket.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                console.log("📩 Received WebSocket message:", data);
+                showRealTimeNotification(data.message, new Date()); // Pass timestamp for tracking
+            };
+        
+            // Function to display a notification and remove it after 5 seconds
+            function showRealTimeNotification(message, timestamp) {
+                let notification = document.createElement("div");
+                notification.className = "notification";
+                notification.innerHTML = `<p>🚀 ${message} <small>${formatTimestamp(timestamp)}</small></p>`;
+                notification.dataset.timestamp = timestamp.getTime(); // Store timestamp for removal
+        
+                // Add notification to the display
+                notificationBox.appendChild(notification);
+        
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    if (notificationBox.contains(notification)) {
+                        notificationBox.removeChild(notification);
+                    }
+                }, 5000);
+            }
+        
+            // Function to fetch and display notifications from API
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch("/notifications/", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include"
+                    });
+        
+                    if (!response.ok) {
+                        console.error("❌ Failed to fetch notifications:", response.status);
+                        return;
+                    }
+        
+                    const data = await response.json();
+                    displayNotifications(data.notifications);
+                } catch (error) {
+                    console.error("❌ Error fetching notifications:", error);
+                }
+            }
+        
+            // Function to display fetched notifications and remove old ones
+            function displayNotifications(notifications) {
+                notificationBox.innerHTML = ""; // Clear previous notifications
+        
+                const now = new Date().getTime();
+        
+                notifications.forEach(notification => {
+                    const notificationTime = new Date(notification.timestamp).getTime();
+                    const elapsedSeconds = (now - notificationTime) / 1000;
+        
+                    // Ignore notifications older than 10 seconds
+                    if (elapsedSeconds > 10) {
+                        return;
+                    }
+        
+                    let notificationElement = document.createElement("div");
+                    notificationElement.classList.add("notification");
+                    notificationElement.innerHTML = `<p>🚀 ${notification.message} <small>${notification.timestamp}</small></p>`;
+                    notificationElement.dataset.timestamp = notificationTime;
+        
+                    notificationBox.appendChild(notificationElement);
+        
+                    // Remove the notification after 5 seconds
+                    setTimeout(() => {
+                        if (notificationBox.contains(notificationElement)) {
+                            notificationBox.removeChild(notificationElement);
+                        }
+                    }, 5000);
+                });
+            }
+        
+            // Function to format timestamp
+            function formatTimestamp(timestamp) {
+                const date = new Date(timestamp);
+                return date.toLocaleTimeString();
+            }
+        
+            // Fetch notifications on page load
+            fetchNotifications();
+        
+            // Automatically refresh notifications every 10 seconds using AJAX
+            setInterval(fetchNotifications, 10000);
+        }); {% endcomment %}
+        document.addEventListener("DOMContentLoaded", function () {
+            let socket;
+            const maxRetries = 5;
+            let retryCount = 0;
+        
+            function connectWebSocket() {
+                // Ensure only one WebSocket connection is open
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    return;
+                }
+        
+                socket = new WebSocket("ws://127.0.0.1:8001/ws/notifications/");
+        
+                socket.onopen = function () {
+                    console.log("✅ WebSocket connection established.");
+                    retryCount = 0; // Reset retry count upon successful connection
+                };
+        
+                socket.onerror = function (error) {
+                    console.error("❌ WebSocket error:", error);
+                };
+        
+                socket.onmessage = function (event) {
+                    const data = JSON.parse(event.data);
+                    console.log("📩 Received WebSocket message:", data);
+                    showRealTimeNotification(data.message, new Date());
+                };
+        
+                socket.onclose = function (event) {
+                    console.warn("⚠️ WebSocket disconnected. Attempting to reconnect...");
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        setTimeout(connectWebSocket, 3000); // Attempt reconnection after 3 seconds
+                    } else {
+                        console.error("❌ Max reconnection attempts reached. Please check your network or server.");
+                    }
+                };
+            }
+        
+            connectWebSocket(); // Initialize WebSocket connection
+        
+            // Function to display notifications and remove them after 5 seconds
+            function showRealTimeNotification(message, timestamp) {
+                let notificationBox = document.getElementById("notificationBox");
+        
+                let notification = document.createElement("div");
+                notification.className = "notification";
+                notification.innerHTML = `<p>🚀 ${message} <small>${formatTimestamp(timestamp)}</small></p>`;
+                notification.dataset.timestamp = timestamp.getTime();
+        
+                notificationBox.appendChild(notification);
+        
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    if (notificationBox.contains(notification)) {
+                        notificationBox.removeChild(notification);
+                    }
+                }, 5000);
+            }
+        
+            function formatTimestamp(timestamp) {
+                const date = new Date(timestamp);
+                return date.toLocaleTimeString();
+            }
+        
+            // Fetch notifications on page load
+            fetchNotifications();
+        
+            // Automatically refresh notifications every 10 seconds using AJAX
+            setInterval(fetchNotifications, 10000);
+        
+            // Function to fetch notifications via AJAX
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch("/notifications/", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include"
+                    });
+        
+                    if (!response.ok) {
+                        console.error("❌ Failed to fetch notifications:", response.status);
+                        return;
+                    }
+        
+                    const data = await response.json();
+                    displayNotifications(data.notifications);
+                } catch (error) {
+                    console.error("❌ Error fetching notifications:", error);
+                }
+            }
+        
+            // Function to display stored notifications from the API
+            function displayNotifications(notifications) {
+                let notificationBox = document.getElementById("notificationBox");
+                notificationBox.innerHTML = ""; // Clear previous notifications
+        
+                const now = new Date().getTime();
+        
+                notifications.forEach(notification => {
+                    const notificationTime = new Date(notification.timestamp).getTime();
+                    const elapsedSeconds = (now - notificationTime) / 1000;
+        
+                    if (elapsedSeconds > 10) {
+                        return;
+                    }
+        
+                    let notificationElement = document.createElement("div");
+                    notificationElement.classList.add("notification");
+                    notificationElement.innerHTML = `<p>🚀 ${notification.message} <small>${notification.timestamp}</small></p>`;
+                    notificationElement.dataset.timestamp = notificationTime;
+        
+                    notificationBox.appendChild(notificationElement);
+        
+                    setTimeout(() => {
+                        if (notificationBox.contains(notificationElement)) {
+                            notificationBox.removeChild(notificationElement);
+                        }
+                    }, 5000);
+                });
+            }
+        });
+        // Real-Time Notifications functions end
+
+        // Fetch and Display Shared Tasks (Tasks Shared WITH the Logged-in User)
+        async function fetchSharedTasks() {
+            try {
+                const response = await fetch("/tasks/shared/", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include"  // Ensure authentication cookies are sent
+                });
+
+                const data = await response.json();
+                displaySharedTasks(data.shared_tasks);
+            } catch (error) {
+                console.error("Error fetching shared tasks:", error);
+            }
+        }
+
+        // Display Shared Tasks in the UI
+        function displaySharedTasks(tasks) {
+            let sharedTasksContainer = document.getElementById("sharedTasksContainer");
+            sharedTasksContainer.innerHTML = ""; // Clear previous data
+        
+            if (tasks.length === 0) {
+                sharedTasksContainer.innerHTML = "<p>No tasks shared with you.</p>";
+                return;
+            }
+            
+            tasks.forEach(task => {
+                let taskElement = document.createElement("div");
+                taskElement.classList.add("task-card");
+                
+                let taskHTML = `
+                <h3>${task.title} <small>(Shared by: ${task.owner})</small></h3>
+                <p><strong>Description:</strong> ${task.description}</p>
+                <p><strong>Status:</strong> ${task.status}</p>
+                <p><strong>Due Date:</strong> ${task.due_date}</p>
+                `;
+                
+                // Only show "Manage Sharing" for tasks the user owns
+                if (task.is_owner) {
+                    taskHTML += `<a href="/tasks/${task.id}/share/" class="btn btn-primary">Manage Sharing</a>`;
+                }
+                
+                taskElement.innerHTML = taskHTML;
+                sharedTasksContainer.appendChild(taskElement);
+            });
+        }        
+        
+        // Automatically fetch shared tasks when the page loads
+        document.addEventListener("DOMContentLoaded", fetchSharedTasks);
+    </script>
+    <!-- Change End -->
+    {% endblock %}
+    
