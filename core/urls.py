@@ -20,4 +20,13 @@ urlpatterns = [
 
     # Missing Route (Added Now)
     path("tasks/shared/", views.get_shared_tasks, name="shared_tasks"),
+    
+    path("analytics/overview/", views.task_overview, name="task_overview"),
+    path("analytics/trends/", views.task_trends, name="task_trends"),
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path("analytics/trends/graph/", views.task_trends_graph, name="task_trends_graph"),
+    path("analytics/trends/graph/", views.weekly_task_completion_trends, name="weekly_task_completion_trends"),
+    path("analytics/trends/graph/", views.monthly_task_creation_trends, name="monthly_task_creation_trends"),
+    path("analytics/trends/graph/", views.task_status_distribution, name="task_status_distribution"),
+    path("analytics/trends/graph/", views.overdue_tasks, name="overdue_tasks"),
 ]

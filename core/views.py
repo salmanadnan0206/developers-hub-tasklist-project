@@ -258,5 +258,213 @@ def get_notifications(request):
     ]
 
     return JsonResponse({"notifications": notifications_data})
+
+from django.db.models import Count
+from django.db.models.functions import TruncWeek
+
+"""
+To effectively visualize task trends and ensure accurate representation of your data, it's essential to follow a structured approach. Here's a step-by-step guide to help you achieve this:
+
+1. **Data Preparation:**
+   - **Ensure Accurate Data Retrieval:** Verify that you're fetching the correct data for the logged-in user. This includes tasks with accurate `created_at`, `due_date`, and `status` fields.
+   - **Handle Missing or Incorrect Data:** Check for any missing or inconsistent data entries that might skew the visualizations.
+
+2. **Data Aggregation:**
+   - **Resample Data Appropriately:** Depending on the desired visualization (e.g., weekly trends, monthly summaries), aggregate your data accordingly. For instance, use weekly resampling to observe weekly task completion trends.
+   - **Differentiate Between Task States:** Separate tasks based on their `status` (e.g., 'Completed', 'Pending') to provide clear insights into each category.
+
+3. **Visualization:**
+   - **Choose the Right Plot Type:** Select visualization types that best represent your data. For example, line plots for trends over time, bar plots for categorical comparisons, and pie charts for distribution breakdowns.
+   - **Customize Plots for Clarity:** Enhance your plots with titles, axis labels, legends, and grid lines to improve readability and interpretation.
+
+4. **Integration into Django:**
+   - **Generate Plots in Views:** Create the visualizations within your Django views, rendering them as images.
+   - **Embed Plots in Templates:** Incorporate these images into your Django templates to display the visualizations on your web pages.
+
+5. **Testing and Validation:**
+   - **Verify Data Accuracy:** Cross-check the visualizations against your raw data to ensure they accurately reflect the information.
+   - **Gather User Feedback:** Collect feedback from users to identify any discrepancies or areas for improvement in the visualizations.
+
+By systematically following these steps, you can create meaningful and accurate visualizations that provide valuable insights into task trends and statuses. 
+"""
+
+def task_overview(request):
+    total_tasks = Task.objects.count()
+    completed_tasks = Task.objects.filter(status="Completed").count()
+    pending_tasks = Task.objects.filter(status="Pending").count()
+
+    return JsonResponse([
+        {"status": "Total", "count": total_tasks},
+        {"status": "Completed", "count": completed_tasks},
+        {"status": "Pending", "count": pending_tasks}
+    ], safe=False)
+
+def task_trends(request):
+    trends = Task.objects.annotate(week=TruncWeek("created_at")).values("week").annotate(count=Count("id")).order_by("week")
+
+    return JsonResponse(list(trends), safe=False)
+
+import redis
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+def task_overview(request):
+    cached_data = r.get("taskAnalytics")
+
+    if cached_data:
+        return JsonResponse(json.loads(cached_data), safe=False)
+
+    total_tasks = Task.objects.count()
+    completed_tasks = Task.objects.filter(status="Completed").count()
+    pending_tasks = Task.objects.filter(status="Pending").count()
+
+    response = [
+        {"status": "Total", "count": total_tasks},
+        {"status": "Completed", "count": completed_tasks},
+        {"status": "Pending", "count": pending_tasks}
+    ]
+
+    r.setex("taskAnalytics", 3600, json.dumps(response))  # Cache for 1 hour
+    return JsonResponse(response, safe=False)
+
+from django.shortcuts import render
+
+def dashboard(request):
+    return render(request, "core/dashboard.html")
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from io import BytesIO
+
+
+@login_required
+def task_trends_graph(request):
+    # Get tasks for the logged-in user
+    tasks = Task.objects.filter(owner=request.user).values("created_at", "status")
+
+    # Convert to DataFrame
+    df = pd.DataFrame(list(tasks))
+    df["created_at"] = pd.to_datetime(df["created_at"])
+
+    # Aggregate tasks by week
+    df_weekly = df.resample("W", on="created_at").count()
+
+    # Generate the line plot
+    plt.figure(figsize=(10, 5))  # Width, Height in inches
+    sns.lineplot(data=df_weekly, x=df_weekly.index, y="status", marker="o", color="b")
+    plt.title("Weekly Task Trends")
+    plt.xlabel("Week")
+    plt.ylabel("Number of Tasks Created")
+    plt.xticks(rotation=45)
+    plt.grid(True)
+
+    # Save to a buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format="png")
+    plt.close()
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+@login_required
+def weekly_task_completion_trends(request):
+    # Fetch completed tasks for the logged-in user
+    tasks = Task.objects.filter(owner=request.user, status='Completed').values('created_at')
+    df = pd.DataFrame(list(tasks))
+    df['created_at'] = pd.to_datetime(df['created_at'])
+    df.set_index('created_at', inplace=True)
+    df_weekly = df.resample('W').size()
+
+    # Generate the plot
+    plt.figure(figsize=(10, 5))
+    sns.lineplot(data=df_weekly, marker='o', color='b')
+    plt.title('Weekly Task Completion Trends')
+    plt.xlabel('Week')
+    plt.ylabel('Number of Tasks Completed')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+
+    # Save plot to buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+@login_required
+def monthly_task_creation_trends(request):
+    # Fetch tasks for the logged-in user
+    tasks = Task.objects.filter(owner=request.user).values('created_at')
+    df = pd.DataFrame(list(tasks))
+    df['created_at'] = pd.to_datetime(df['created_at'])
+    df.set_index('created_at', inplace=True)
+    df_monthly = df.resample('M').size()
+
+    # Generate the plot
+    plt.figure(figsize=(10, 5))
+    sns.barplot(x=df_monthly.index.strftime('%Y-%m'), y=df_monthly.values, palette='viridis')
+    plt.title('Monthly Task Creation Trends')
+    plt.xlabel('Month')
+    plt.ylabel('Number of Tasks Created')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+
+    # Save plot to buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+@login_required
+def task_status_distribution(request):
+    # Fetch tasks for the logged-in user
+    tasks = Task.objects.filter(owner=request.user).values('status')
+    df = pd.DataFrame(list(tasks))
+    status_counts = df['status'].value_counts()
+
+    # Generate the plot
+    plt.figure(figsize=(8, 8))
+    plt.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', startangle=140, colors=sns.color_palette('Set2'))
+    plt.title('Task Status Distribution')
+    plt.axis('equal')
+
+    # Save plot to buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+@login_required
+def overdue_tasks(request):
+    today = pd.Timestamp.today().normalize()
+    tasks = Task.objects.filter(owner=request.user, status__in=['Pending', 'In Progress'], due_date__lt=today).values('due_date', 'title')
+    df = pd.DataFrame(list(tasks))
+
+    # Generate the plot
+    plt.figure(figsize=(10, 5))
+    if not df.empty:
+        sns.countplot(data=df, x='due_date', palette='Reds')
+        plt.title('Overdue Tasks')
+        plt.xlabel('Due Date')
+        plt.ylabel('Number of Overdue Tasks')
+        plt.xticks(rotation=45)
+        plt.grid(True)
+    else:
+        plt.text(0.5, 0.5, 'No Overdue Tasks', horizontalalignment='center', verticalalignment='center', fontsize=12)
+        plt.axis('off')
+
+    # Save plot to buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
 # Changes End
 
