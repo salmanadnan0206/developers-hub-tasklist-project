@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Installed Apps
     'daphne',
     'channels',
+    'whitenoise.runserver_nostatic',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,6 +60,8 @@ CHANNEL_LAYERS = {
 }
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,6 +70,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'tasklist.urls'
 
