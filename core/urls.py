@@ -1,5 +1,9 @@
+from django.http import HttpResponse
 from django.urls import path
 from . import views
+
+def favicon_redirect(request):
+    return HttpResponse(status=204)
 
 urlpatterns = [
     path('', views.home_page, name='home_page'),
@@ -14,9 +18,10 @@ urlpatterns = [
     path("tasks/<int:task_id>/add_user/", views.add_shared_user, name="add_user"),
     path("tasks/<int:task_id>/remove_user/", views.remove_shared_user, name="remove_user"),
     path("tasks/<int:task_id>/update_status/", views.update_task_status, name="update_status"),
-    path("json_notifications/", views.get_notifications, name="json_notifications"),
-    path("notifications/", views.notifications_page, name="notifications_page"),
+    path('notifications/', views.get_notifications, name='get_notifications'),
+    path('notifications_page/', views.notifications_page, name='notifications_page'),
     path("tasks/shared/", views.get_shared_tasks, name="shared_tasks"),
+    path('favicon.ico', favicon_redirect, name="favicon_url"),
 
     # ✅ Dashboard & Graph Routes
     path("dashboard/", views.dashboard, name="dashboard"),

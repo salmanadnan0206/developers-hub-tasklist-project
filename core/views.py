@@ -250,29 +250,19 @@ def update_task_status(request, task_id):
 
         return JsonResponse({"message": "Task status updated successfully"}, status=200)
 
-@login_required  # Ensures only authenticated users can access this
+@login_required
 def get_notifications(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "Unauthorized"}, status=401)
-
-    notifications = Notification.objects.filter(user=request.user).order_by("-created_at")[:10]
-
-    notifications_data = [
-        {
-            "message": n.message, 
-            "timestamp": n.created_at.strftime("%Y-%m-%d %H:%M:%S")  # Correct timestamp format
-        }
-        for n in notifications
-    ]
-
-    return JsonResponse({"notifications": notifications_data}, safe=False)
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    data = [{
+        "message": notification.message,
+        "timestamp": notification.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    } for notification in notifications]
+    return JsonResponse({"notifications": data})
 
 @login_required
 def notifications_page(request):
-    """Displays notifications for the logged-in user."""
-    notifications = Notification.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, 'core/notifications.html')
 
-    return render(request, 'core/notifications.html', {"notifications": notifications})
 
 
 import matplotlib.pyplot as plt

@@ -53,6 +53,7 @@
 
     <!-- Tasks Shared With Me -->
     <h2>Tasks Shared With Me</h2>
+    {% comment %} <div id="sharedTasksContainer"> {% endcomment %}
     <div class="shared-tasks-container">
         {% for task in shared_tasks %}
             <div class="shared-task-card">
@@ -187,7 +188,8 @@
                     return;
                 }
         
-                socket = new WebSocket("ws://127.0.0.1:8001/ws/notifications/");
+                socket = new WebSocket("ws://" + window.location.host + "/ws/notifications/");
+
         
                 socket.onopen = function () {
                     console.log("✅ WebSocket connection established.");
@@ -250,7 +252,7 @@
             // Function to fetch notifications via AJAX
             async function fetchNotifications() {
                 try {
-                    const response = await fetch("/notifications/", {
+                    const response = await fetch("http://127.0.0.1:8000/notifications/", {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
                         credentials: "include"
@@ -363,9 +365,9 @@
         }
     
         function displaySharedTasks(tasks) {
-            let taskContainer = document.getElementById("sharedTasksContainer");
+            let taskContainer = document.querySelector(".shared-tasks-container");
             if (!taskContainer) {
-                console.error("❌ 'sharedTasksContainer' not found!");
+                console.error("❌ 'shared-tasks-container' not found!");
                 return;
             }
         
@@ -373,11 +375,16 @@
         
             tasks.forEach(task => {
                 let taskElement = document.createElement("div");
-                taskElement.classList.add("task-item");
-                taskElement.innerHTML = `<p>${task.title} - ${task.status}</p>`;
+                taskElement.classList.add("shared-task-card");
+                taskElement.innerHTML = `
+                    <h3 style="color: #ffffff;">${task.title} <span>(Shared by: ${task.owner})</span></h3>
+                    <p><strong>Description:</strong> ${task.description}</p>
+                    <p><strong>Status:</strong> ${task.status}</p>
+                    <p><strong>Due Date:</strong> ${task.due_date}</p>
+                `;
                 taskContainer.appendChild(taskElement);
             });
-        }        
+        }            
 
         // Automatically fetch shared tasks when the page loads
         document.addEventListener("DOMContentLoaded", fetchSharedTasks);
