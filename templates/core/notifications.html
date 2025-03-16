@@ -1,0 +1,20 @@
+{% extends 'partials/base.html' %}
+
+{% block content %}
+
+<h1>Notifications</h1>
+
+{% if notifications %}
+    <ul>
+        {% for notification in notifications %}
+            <li>
+                <strong>{{ notification.created_at|date:"F d, Y H:i" }}</strong> - 
+                {{ notification.message }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No notifications available.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,74 +1,55 @@
 {% extends 'partials/base.html' %}
+{% load static %}
 
 {% block content %}
 
-<style>
-    /* Add this to your CSS file or within a <style> tag in your template */
+<!-- <style>
     .chart-container {
         width: 100%;
-        max-width: 800px; /* Adjust as needed */
+        max-width: 800px;
         margin: auto;
     }
-    #taskLineChart {
+    .chart-container img {
         width: 100%;
-        height: 400px; /* Adjust as needed */
+        height: auto;
+        display: block;
+        margin: auto;
     }
-</style>
+</style> -->
 
-<h2>Task Trends Over Time</h2>
-<img src="{% url 'task_trends_graph' %}" alt="Weekly Task Trends" style="width: 100%; max-width: 800px; height: auto; display: block; margin: auto;" />
+<h1>Dashboard</h1>
 
-<h2>Weekly Task Completion Trends</h2>
-<img src="{% url 'weekly_task_completion_trends' %}" alt="Weekly Task Completion Trends" style="width: 100%; max-width: 800px; height: auto; display: block; margin: auto;" />
+<h2>Task Completion Rate</h2>
+<p>{{ completion_percentage }}% tasks completed</p>
 
-<h2>Monthly Task Creation Trends</h2>
-<img src="{% url 'monthly_task_creation_trends' %}" alt="Monthly Task Creation Trends" style="width: 100%; max-width: 800px; height: auto; display: block; margin: auto;" />
+<h2>Overdue Tasks</h2>
+<p>{{ overdue_tasks }} tasks are overdue</p>
+
+<h2>Weekly Task Trends</h2>
+{% if weekly_trend_img %}
+    <div class="chart-container">
+        <img src="data:image/png;base64,{{ weekly_trend_img }}" alt="Weekly Task Trends">
+    </div>
+{% else %}
+    <p>No data available. Add tasks to see trends.</p>
+{% endif %}
 
 <h2>Task Status Distribution</h2>
-<img src="{% url 'task_status_distribution' %}" alt="Task Status Distribution" style="width: 100%; max-width: 400px; height: auto; display: block; margin: auto;" />
+{% if status_pie_chart_img %}
+    <div class="chart-container">
+        <img src="data:image/png;base64,{{ status_pie_chart_img }}" alt="Task Status Distribution">
+    </div>
+{% else %}
+    <p>No data available. Create tasks to see status distribution.</p>
+{% endif %}
 
-<!-- <h2>Overdue Tasks</h2>
-<img src="{% url 'overdue_tasks' %}" alt="Overdue Tasks" style="width: 100%;::contentReference[oaicite:14]{index=14} -->
-
-
-
-<!-- <div class="chart-container">
-    <canvas id="taskLineChart"></canvas>
-</div> -->
-
-<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    async function fetchTrends() {
-        const response = await fetch('/analytics/trends/');
-        const data = await response.json();
-
-        const labels = data.map(d => new Date(d.week).toLocaleDateString());
-        const values = data.map(d => d.count);
-
-        new Chart(document.getElementById('taskLineChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Tasks Created per Week',
-                    data: values,
-                    borderColor: '#2196F3',
-                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true, // Ensure aspect ratio is maintained
-                scales: {
-                    x: { title: { display: true, text: "Week" } },
-                    y: { title: { display: true, text: "Number of Tasks" }, beginAtZero: true }
-                }
-            }
-        });
-    }
-
-    fetchTrends();
-</script> -->
+<h2>Task Due Date Trends</h2>
+{% if due_date_trends_img %}
+    <div class="chart-container">
+        <img src="data:image/png;base64,{{ due_date_trends_img }}" alt="Task Due Date Trends">
+    </div>
+{% else %}
+    <p>No data available. Complete tasks to see due date trends.</p>
+{% endif %}
 
 {% endblock %}

@@ -10,8 +10,19 @@
     <script src="{% static 'js/websocket.js' %}"></script>
 </head>
 <body>
-    <div class="header">Task Management System</div>
+    <header style="background-color: #007bff; padding: 15px; text-align: center; position: relative;">
+        <h1>
+            <a href="{% url 'home_page' %}" style="color: white; text-decoration: none;">
+                TASK MANAGEMENT SYSTEM
+            </a>
+        </h1>
+    </header>    
     <div class="nav-links">
+        {% comment %} <a href="{% url 'notifications_page' %}"> {% endcomment %}
+        <a href="/notifications">
+            🔔 Notifications
+        </a>
+        <button id="darkModeToggle" class="dark-mode-toggle">🌙 Dark Mode</button>
         {% if user.is_authenticated %}
             <a href="{% url 'logout' %}">Logout</a>
         {% else %}
@@ -27,5 +38,28 @@
         {% block content %}{% endblock %}
     </div>
     <div class="footer">&copy; 2025 Task Management System</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const body = document.body;
+        
+            // Load Dark Mode Preference from Local Storage
+            if (localStorage.getItem("dark-mode") === "enabled") {
+                body.classList.add("dark-mode");
+            }
+        
+            // Toggle Dark Mode
+            darkModeToggle.addEventListener("click", function () {
+                body.classList.toggle("dark-mode");
+        
+                if (body.classList.contains("dark-mode")) {
+                    localStorage.setItem("dark-mode", "enabled");
+                } else {
+                    localStorage.setItem("dark-mode", "disabled");
+                }
+            });
+        });
+    </script>        
 </body>
 </html>

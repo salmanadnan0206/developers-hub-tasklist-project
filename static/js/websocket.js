@@ -8,7 +8,6 @@ let retryCount = 0;
 document.addEventListener("DOMContentLoaded", function () {
     connectWebSocket(); // Initialize WebSocket connection
 
-    // Function to establish WebSocket connection
     function connectWebSocket() {
         const userSessionId = document.cookie.split('; ').find(row => row.startsWith('sessionid='))?.split('=')[1];
 
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         socket.onopen = function () {
             console.log("✅ WebSocket connection established.");
-            retryCount = 0; // Reset retry count upon successful connection
+            retryCount = 0;
         };
 
         socket.onerror = function (error) {
@@ -30,25 +29,33 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         socket.onmessage = function (event) {
-            const data = JSON.parse(event.data);
-            console.log("📩 Received WebSocket message:", data);
-            showRealTimeNotification(data.message);
+            try {
+                const data = JSON.parse(event.data);
+                if (data.message) {
+                    console.log("📩 Received WebSocket message:", data);
+                    showRealTimeNotification(data.message);
+                } else {
+                    console.warn("⚠️ Received invalid WebSocket data:", data);
+                }
+            } catch (e) {
+                console.error("❌ Error parsing WebSocket message:", e);
+            }
         };
 
-        socket.onclose = function (event) {
+        socket.onclose = function () {
             console.warn("⚠️ WebSocket disconnected. Reconnecting in 3 seconds...");
             if (retryCount < maxRetries) {
                 retryCount++;
                 setTimeout(connectWebSocket, 3000);
             } else {
-                console.error("❌ Max reconnection attempts reached. Please check your server.");
+                console.error("❌ Max reconnection attempts reached.");
             }
         };
     }
 
-    // Function to display notifications in real-time
     function showRealTimeNotification(message) {
         let notificationBox = document.getElementById("notificationBox");
+        if (!notificationBox) return;
 
         let notification = document.createElement("div");
         notification.className = "notification";
@@ -64,47 +71,43 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 5000);
     }
 
-    // Fetch notifications periodically to ensure updates
+    // Fetch notifications periodically
     async function fetchNotifications() {
         try {
-            const response = await fetch("/notifications/", {
+            const response = await fetch("/json_notifications/", {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
             });
 
             if (!response.ok) {
-                console.error("❌ Failed to fetch notifications:", response.status);
+                console.error(`❌ Failed to fetch notifications (HTTP ${response.status}):`, await response.text());
                 return;
             }
 
             const data = await response.json();
+            if (!data.notifications) throw new Error("Invalid JSON format");
+
             displayStoredNotifications(data.notifications);
         } catch (error) {
-            console.error("❌ Error fetching notifications:", error);
+            console.error("❌ Error fetching notifications:", error.message);
         }
     }
 
-    // Function to display stored notifications from API
     function displayStoredNotifications(notifications) {
         let notificationBox = document.getElementById("notificationBox");
+        if (!notificationBox) return;
+
         notificationBox.innerHTML = ""; // Clear previous notifications
 
-        const now = new Date().getTime();
-
         notifications.forEach(notification => {
-            const notificationTime = new Date(notification.timestamp).getTime();
-            const elapsedSeconds = (now - notificationTime) / 1000;
-
-            if (elapsedSeconds > 10) return; // Ignore old notifications
-
             let notificationElement = document.createElement("div");
             notificationElement.classList.add("notification");
             notificationElement.innerHTML = `<p>🚀 ${notification.message} <small>${notification.timestamp}</small></p>`;
 
             notificationBox.appendChild(notificationElement);
 
-            // Automatically remove after 5 seconds
+            // Remove after 5 seconds
             setTimeout(() => {
                 if (notificationBox.contains(notificationElement)) {
                     notificationBox.removeChild(notificationElement);
@@ -113,9 +116,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Fetch notifications on page load
     fetchNotifications();
-
-    // Refresh notifications every 10 seconds
     setInterval(fetchNotifications, 10000);
 });

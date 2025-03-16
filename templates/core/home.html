@@ -30,6 +30,7 @@
         <button type="submit" class="search-btn">Search</button>
     </form>
 
+    <!-- Tasks Section -->
     <h2>All Tasks</h2>
     {% for task in tasks %}
         <div class="card">
@@ -38,11 +39,9 @@
             <p><strong>Status:</strong> {{ task.status }}</p>
             <p><strong>Due Date:</strong> {{ task.due_date }}</p>
             <div class="actions">
-                <a href="/tasks/{{ task.id }}/edit/" class="edit-btn">Edit</a>
-                <!-- Change Start -->
-                <a href="/tasks/{{ task.id }}/share/" class="btn btn-primary">Manage Sharing</a>
-                <!-- Change End -->
-                <form action="/tasks/{{ task.id }}/delete/" method="POST" class="inline-form">
+                <a href="{% url 'task_update' task.id %}" class="edit-btn">Edit</a>
+                <a href="{% url 'share_task' task.id %}" class="edit-btn">Manage Sharing</a>
+                <form action="{% url 'task_delete' task.id %}" method="POST" class="inline-form">
                     {% csrf_token %}
                     <button type="submit" class="delete-btn">Delete</button>
                 </form>
@@ -52,11 +51,23 @@
         <p>No tasks found.</p>
     {% endfor %}
 
-    
-    <!-- Change Start -->
+    <!-- Tasks Shared With Me -->
     <h2>Tasks Shared With Me</h2>
-    <div id="sharedTasksContainer"></div>
-    <button onclick="fetchSharedTasks()">Load Shared Tasks</button>
+    <div class="shared-tasks-container">
+        {% for task in shared_tasks %}
+            <div class="shared-task-card">
+                <h3 style="color: #ffffff;">{{ task.title }} <span>(Shared by: {{ task.owner }})</span></h3>
+                <p><strong>Description:</strong> {{ task.description }}</p>
+                <p><strong>Status:</strong> {{ task.status }}</p>
+                <p><strong>Due Date:</strong> {{ task.due_date }}</p>
+            </div>
+        {% empty %}
+            <p>No tasks shared with you.</p>
+        {% endfor %}
+    </div>
+    
+    <button onclick="fetchSharedTasks()" class="btn-primary">Reload Shared Tasks</button>
+
 
     
     <!-- JavaScript -->
@@ -289,7 +300,7 @@
         });
         // Real-Time Notifications functions end
 
-        // Fetch and Display Shared Tasks (Tasks Shared WITH the Logged-in User)
+        {% comment %} // Fetch and Display Shared Tasks (Tasks Shared WITH the Logged-in User)
         async function fetchSharedTasks() {
             try {
                 const response = await fetch("/tasks/shared/", {
@@ -334,8 +345,40 @@
                 taskElement.innerHTML = taskHTML;
                 sharedTasksContainer.appendChild(taskElement);
             });
-        }        
+        }         {% endcomment %}
         
+        async function fetchSharedTasks() {
+            try {
+                const response = await fetch("/tasks/shared/", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include"
+                });
+    
+                const data = await response.json();
+                displaySharedTasks(data.shared_tasks);
+            } catch (error) {
+                console.error("Error fetching shared tasks:", error);
+            }
+        }
+    
+        function displaySharedTasks(tasks) {
+            let taskContainer = document.getElementById("sharedTasksContainer");
+            if (!taskContainer) {
+                console.error("❌ 'sharedTasksContainer' not found!");
+                return;
+            }
+        
+            taskContainer.innerHTML = ""; // Clear existing tasks
+        
+            tasks.forEach(task => {
+                let taskElement = document.createElement("div");
+                taskElement.classList.add("task-item");
+                taskElement.innerHTML = `<p>${task.title} - ${task.status}</p>`;
+                taskContainer.appendChild(taskElement);
+            });
+        }        
+
         // Automatically fetch shared tasks when the page loads
         document.addEventListener("DOMContentLoaded", fetchSharedTasks);
     </script>

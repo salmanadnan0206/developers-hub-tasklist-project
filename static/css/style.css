@@ -6,19 +6,48 @@ body {
   padding: 0;
 }
 
+/* Adjust header height and spacing */
 .header {
   background-color: #007bff;
   color: white;
-  padding: 20px;
+  padding: 12px 20px; /* Reduced padding */
   text-align: center;
-  font-size: 26px;
+  font-size: 22px; /* Slightly reduced font size */
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Ensures content is centered vertically */
 }
 
+.header a {
+  text-decoration: none;
+  color: white;
+}
+
+.notifications-link {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+.notifications-link:hover {
+  text-decoration: underline;
+}
+
+/* Navigation Links */
 .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 5px 20px;
   display: flex;
   justify-content: flex-end;
   padding: 10px 20px;
@@ -36,6 +65,10 @@ body {
   border: 1px solid #007bff;
   background-color: white;
   transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
 }
 
 .nav-links a:hover {
@@ -96,6 +129,74 @@ form button:hover {
 .card p {
   margin: 5px 0;
   color: #333;
+}
+
+/* Manage Sharing Button */
+.manage-sharing-btn {
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: #17a2b8;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.manage-sharing-btn:hover {
+  background-color: #138496;
+}
+
+/* Shared Tasks Container */
+.shared-tasks-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Shared Task Card */
+.shared-task-card {
+  background: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.shared-task-card h3 {
+  font-size: 18px;
+  color: #007bff;
+  margin-bottom: 5px;
+}
+
+.shared-task-card p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+/* Load Shared Tasks Button */
+.load-shared-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.load-shared-btn:hover {
+  background-color: #218838;
 }
 
 /* Add Task Button */
@@ -248,5 +349,362 @@ form button:hover {
 
 .delete-btn:hover {
   background-color: #cc0000;
+}
+
+/* shared_tasks.html */
+a.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+a.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+a.btn-primary:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+/* Reload Shared Tasks Button */
+.btn-primary {
+  display: inline-block;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+/* dashboard.html */
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+}
+.chart-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: auto;
+}
+
+/* Improved Dark Mode Styles */
+.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.dark-mode .header {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.dark-mode .nav-links {
+  background-color: #1e1e1e;
+  box-shadow: none;
+}
+
+.dark-mode .nav-links a {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.dark-mode .nav-links a:hover {
+  background-color: #ffffff;
+  color: #1e1e1e;
+}
+
+.dark-mode .container {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Make all text visible */
+.dark-mode h2, 
+.dark-mode h3, 
+.dark-mode p, 
+.dark-mode strong {
+  color: #ffffff !important;
+}
+
+.dark-mode .card {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure task descriptions and details are visible */
+.dark-mode .card p,
+.dark-mode .shared-task-card p,
+.dark-mode .shared-task-card h3 {
+  color: #ffffff !important;
+}
+
+.dark-mode .card h3 {
+  color: #4dabf7;
+}
+
+.dark-mode .shared-tasks-container {
+  background-color: #2a2a2a;
+}
+
+.dark-mode .shared-task-card {
+  background: #333;
+  color: white;
+}
+
+.dark-mode .footer {
+  background-color: #1e1e1e;
+}
+
+/* Fix form input visibility */
+.dark-mode form input,
+.dark-mode form textarea,
+.dark-mode form select {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+/* Fix button visibility */
+.dark-mode form button {
+  background-color: #ff4d4d;
+  color: #ffffff;
+}
+
+.dark-mode form button:hover {
+  background-color: #CC0000;
+}
+
+/* Fix progress bar in dark mode */
+.dark-mode .progress-bar-wrapper {
+  background-color: #333;
+}
+
+.dark-mode .progress-bar {
+  background-color: #4dabf7;
+}
+
+/* Fix search bar and filter dropdown */
+.dark-mode .search-bar,
+.dark-mode .filter-dropdown {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+/* Fix shared task cards */
+.dark-mode .shared-task-card {
+  background: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.dark-mode-toggle:hover {
+  background-color: #0056b3;
+}
+
+/* Dark Mode for Header */
+.dark-mode .header {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+/* Dark Mode for Navigation Links */
+.dark-mode .nav-links {
+  background-color: #1e1e1e;
+  box-shadow: none;
+}
+
+/* Dark Mode for Navigation Buttons */
+.dark-mode .nav-links a {
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  background-color: transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+.dark-mode .nav-links a:hover {
+  background-color: #ffffff;
+  color: #1e1e1e;
+}
+
+/* Dark Mode for Notifications Link */
+.dark-mode .notifications-link {
+  color: #ffffff;
+}
+
+.dark-mode .notifications-link:hover {
+  text-decoration: underline;
+}
+
+/* Dark Mode for Dark Mode Toggle Button */
+.dark-mode .dark-mode-toggle {
+  background-color: #4dabf7;
+  color: white;
+  border: 1px solid #ffffff;
+}
+
+.dark-mode .dark-mode-toggle:hover {
+  background-color: #3383c1;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+  .header {
+    font-size: 18px; /* Reduce font size */
+    padding: 10px 15px;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .nav-links a {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .notifications-link {
+    position: static;
+    transform: none;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+  }
+}
+
+/* Adjust main container for smaller screens */
+@media (max-width: 768px) {
+  .container {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .card h3 {
+    font-size: 18px;
+  }
+
+  .card p {
+    font-size: 14px;
+  }
+}
+
+/* Ensure shared tasks cards fit well on smaller screens */
+@media (max-width: 600px) {
+  .shared-task-card {
+    padding: 12px;
+  }
+
+  .shared-task-card h3 {
+    font-size: 16px;
+  }
+
+  .shared-task-card p {
+    font-size: 13px;
+  }
+}
+
+/* Forms and inputs should fit properly */
+@media (max-width: 768px) {
+  form input,
+  form textarea,
+  form select {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .search-bar,
+  .filter-dropdown {
+    width: 100%;
+  }
+
+  .search-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+/* Responsive Buttons */
+@media (max-width: 600px) {
+  .edit-btn,
+  .delete-btn,
+  .manage-sharing-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dark-mode .container {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .dark-mode .card {
+    padding: 12px;
+  }
+
+  .dark-mode .nav-links {
+    flex-direction: column;
+  }
+
+  .dark-mode .nav-links a {
+    text-align: center;
+    padding: 10px;
+    width: 100%;
+  }
 }
 

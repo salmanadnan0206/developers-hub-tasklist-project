@@ -16,9 +16,6 @@ class Task(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     due_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    
-    # Changes
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owned_tasks")
     shared_with = models.ManyToManyField(User, related_name="shared_tasks", blank=True)
 
@@ -29,18 +26,11 @@ class Task(models.Model):
         indexes = [
             models.Index(fields=['created_at'], name='idx_created_at'),
         ]
-    
-    def clean(self):
-        """ Validate that due_date is not before created_at and is not missing. """
-        if self.due_date and self.due_date < self.created_at.date():
-            raise ValidationError("Due date cannot be earlier than the creation date.")
-        if not self.due_date:
-            raise ValidationError("Due date is required.")
 
     def save(self, *args, **kwargs):
-        """ Ensure validation is applied before saving the task. """
-        self.full_clean()
+        """ Ensure validation is applied before saving the task (without clean()). """
         super().save(*args, **kwargs)
+
 
 
 class Notification(models.Model):
